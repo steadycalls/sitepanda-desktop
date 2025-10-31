@@ -1,275 +1,262 @@
-# Duda Site Manager
+# SitePanda Desktop
 
 A desktop application for managing Duda websites, fetching site data, and sending webhook notifications.
 
+[![GitHub](https://img.shields.io/badge/GitHub-sitepanda--desktop-blue?logo=github)](https://github.com/steadycalls/sitepanda-desktop)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 ## Features
 
-- **Fetch Duda Site Data**: Automatically retrieve data from your Duda sites via the Duda API
-  - Site information and metadata
-  - Form submissions from contact forms
-  - eCommerce products and orders
-  - Site analytics and statistics
-  - Content collections and blog posts
+**SitePanda Desktop** provides a comprehensive solution for managing your Duda websites with the following capabilities:
 
-- **S3 Integration**: Pull site statistics from Duda-provided S3 buckets
+### Data Management
+- Fetches and stores site information, form submissions, eCommerce orders, products, and analytics from the Duda API
+- Integrates with S3 to pull site statistics from Duda-provided buckets
+- Stores all data locally in an encrypted SQLite database for fast access and offline viewing
 
-- **Local Database Storage**: All data is stored locally in SQLite for fast access and offline viewing
+### User Interface
+- Clean, tabbed desktop interface built with PyQt6
+- Separate views for Sites, Form Submissions, eCommerce Orders, Products, and Analytics
+- Double-click any row to view detailed information
+- Real-time progress indicators and status updates
 
-- **Webhook Notifications**: Automatically send data to webhook URLs when events occur:
-  - New form submissions
-  - New eCommerce orders
-  - Daily statistics summaries
-  - New blog posts
+### Webhook System
+- Automatically sends data to configured webhook URLs when events occur
+- Supports webhooks for: new form submissions, new eCommerce orders, daily stats summaries, and new blog posts
+- All webhook activity is logged for monitoring and debugging
 
-- **User-Friendly Interface**: Clean, tabbed interface for viewing all your data
+### Security
+- All credentials (Duda API, S3, webhooks) are encrypted using Fernet symmetric encryption
+- Secure file permissions prevent unauthorized access
+- Built-in settings dialog where you can safely input all your credentials
 
-## Installation
+## Quick Installation
 
-### Prerequisites
+### One-Click Install
 
-- Python 3.11 or higher
-- pip (Python package installer)
-
-### Install Dependencies
-
+**Linux/macOS:**
 ```bash
-cd duda-manager
+git clone https://github.com/steadycalls/sitepanda-desktop.git
+cd sitepanda-desktop
+./install_sitepanda.sh
+```
+
+**Windows:**
+```cmd
+git clone https://github.com/steadycalls/sitepanda-desktop.git
+cd sitepanda-desktop
+install_sitepanda.bat
+```
+
+The installer will:
+- Check Python version (3.11+ required)
+- Install all dependencies
+- Run installation tests
+- Optionally create desktop shortcuts
+
+### Manual Installation
+
+1. **Clone the repository:**
+```bash
+git clone https://github.com/steadycalls/sitepanda-desktop.git
+cd sitepanda-desktop
+```
+
+2. **Install dependencies:**
+```bash
 pip3 install -r requirements.txt
 ```
 
-The following packages will be installed:
-- `requests` - For API communication
-- `boto3` - For AWS S3 integration
-- `PyQt6` - For the desktop GUI
-- `cryptography` - For secure credential storage
-- `python-dotenv` - For environment configuration
-
-## Configuration
-
-### 1. Duda API Credentials
-
-To use this application, you need Duda API credentials:
-
-1. Log in to your Duda account
-2. Navigate to **Settings → Developer Tools** or **API Access**
-3. Generate or view your API credentials
-4. Copy the **Username** and **Password**
-
-**Note**: API access requires a paid Duda plan (Agency, Custom, or higher).
-
-### 2. AWS S3 Credentials (Optional)
-
-If Duda provides S3 access for your white-label site statistics:
-
-1. Contact Duda support to obtain S3 credentials
-2. You'll need:
-   - AWS Access Key ID
-   - AWS Secret Access Key
-   - S3 Bucket Name
-   - AWS Region (usually `us-east-1`)
-
-### 3. Webhook URLs (Optional)
-
-Configure webhook URLs to receive notifications when events occur. The application sends POST requests with JSON payloads to these URLs.
-
-Example webhook services you can use:
-- **Zapier**: Create a webhook trigger
-- **Make (Integromat)**: Set up a webhook module
-- **Custom Server**: Any endpoint that accepts POST requests
-- **Slack**: Use incoming webhooks
-- **Discord**: Use webhook URLs
-
-## Usage
-
-### Running the Application
-
+3. **Verify installation:**
 ```bash
-cd duda-manager
+python3 test_installation.py
+```
+
+4. **Run the application:**
+```bash
 python3 app.py
 ```
 
-Or make it executable and run directly:
+## Desktop Shortcuts
 
+Create desktop shortcuts for easy access:
+
+**Linux:**
 ```bash
-chmod +x app.py
-./app.py
+./create_desktop_shortcut_linux.sh
 ```
 
-### First-Time Setup
+**macOS:**
+```bash
+./create_desktop_shortcut_macos.sh
+```
 
-1. When you first run the application, you'll be prompted to configure your credentials
-2. Click **Settings** or go to **File → Settings**
-3. Enter your credentials in the appropriate tabs:
-   - **Duda API**: Enter your API username and password
-   - **Amazon S3**: (Optional) Enter S3 credentials if provided by Duda
-   - **Webhooks**: (Optional) Enter webhook URLs for events you want to monitor
-   - **App Settings**: Configure auto-fetch interval and notifications
-4. Click **Save Settings**
+**Windows:**
+```cmd
+create_desktop_shortcut_windows.bat
+```
+
+## First-Time Setup
+
+When you first launch SitePanda Desktop, you'll be prompted to configure your credentials:
+
+1. **Duda API Credentials** (Required)
+   - API Username
+   - API Password
+   - Get these from your Duda account: Settings → Developer Tools
+
+2. **AWS S3 Credentials** (Optional)
+   - Access Key ID
+   - Secret Access Key
+   - Bucket Name
+   - Region (usually `us-east-1`)
+   - Required only if Duda provides S3 access for site statistics
+
+3. **Webhook URLs** (Optional)
+   - Configure URLs for events you want to monitor
+   - Supports: form submissions, orders, stats, blog posts
+
+4. **App Settings**
+   - Auto-fetch interval (default: 5 minutes)
+   - Enable/disable notifications
+
+All credentials are encrypted and stored securely in `~/.sitepanda-desktop/`
+
+## Usage
 
 ### Fetching Data
 
-1. Click the **Fetch Data** button in the toolbar, or go to **Data → Fetch All Data**
-2. The application will retrieve all available data from your Duda sites
-3. Progress will be shown in the status bar
-4. Once complete, you'll see a summary of fetched data
+Click the **Fetch Data** button to retrieve all your site data from Duda. The application will:
+- Connect to the Duda API
+- Fetch sites, forms, orders, products, and analytics
+- Store data in the local database
+- Send webhook notifications for new events
+- Display results in organized tabs
 
 ### Viewing Data
 
-The application has multiple tabs for different data types:
-
-- **Sites**: View all your Duda sites with their status
-- **Form Submissions**: See all form submissions with contact details
-  - Double-click a row to view full form data
-- **eCommerce Orders**: View all orders with customer and payment information
-  - Double-click a row to view full order details
-- **Products**: Browse all products across your sites
-- **Analytics**: View site statistics and analytics data
+Browse through the tabs to view different types of data:
+- **Sites**: All your Duda websites
+- **Form Submissions**: Contact form entries (double-click for details)
+- **eCommerce Orders**: Customer orders (double-click for details)
+- **Products**: All products across your sites
+- **Analytics**: Site statistics
 
 ### Webhooks
 
-Webhooks are automatically processed after each data fetch. The application will:
+Configure webhook URLs in Settings to receive real-time notifications when:
+- A new form is submitted
+- A new order is placed
+- Daily statistics are available
+- A new blog post is published
 
-1. Detect new form submissions and orders
-2. Send POST requests to configured webhook URLs
-3. Mark records as processed to avoid duplicate notifications
-4. Log all webhook activity in the database
+Webhooks send JSON payloads via POST requests. Test with services like:
+- [Webhook.site](https://webhook.site)
+- [Zapier](https://zapier.com)
+- [Make (Integromat)](https://make.com)
+- [Slack](https://slack.com)
+- [Discord](https://discord.com)
 
-#### Webhook Payload Format
+## Documentation
 
-All webhooks send JSON data in this format:
+- **[QUICK_START.md](QUICK_START.md)** - 5-minute setup guide
+- **[USER_GUIDE.md](USER_GUIDE.md)** - Comprehensive user manual
+- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Technical overview
 
-```json
-{
-  "event_type": "new_form_submission",
-  "timestamp": "2025-10-30T13:45:00",
-  "data": {
-    // Event-specific data here
-  }
-}
+## System Requirements
+
+- **Operating System**: Windows 10+, macOS 10.14+, or Linux
+- **Python**: Version 3.11 or higher
+- **Internet Connection**: Required for API access
+- **Duda Account**: With API access (Agency plan or higher)
+
+## Dependencies
+
+```
+requests>=2.31.0      # HTTP client
+boto3>=1.28.0         # AWS SDK
+PyQt6>=6.5.0          # GUI framework
+cryptography>=41.0.0  # Encryption
+python-dotenv>=1.0.0  # Environment config
 ```
 
-#### Event Types
+## Project Structure
 
-- **new_form_submission**: Triggered when a new form is submitted
-- **new_ecommerce_order**: Triggered when a new order is placed
-- **daily_stats_summary**: Daily summary of site statistics
-- **new_blog_post**: Triggered when a new blog post is published
-
-## Data Storage
-
-All data is stored locally in:
-- **Database**: `/home/ubuntu/.duda-manager/duda_data.db` (SQLite)
-- **Configuration**: `/home/ubuntu/.duda-manager/config.enc` (Encrypted)
-- **Encryption Key**: `/home/ubuntu/.duda-manager/key.key` (Secure)
-
-**Security**: All credentials are encrypted using Fernet symmetric encryption. The encryption key is stored with restricted file permissions (600).
+```
+sitepanda-desktop/
+├── app.py                              # Main application entry point
+├── requirements.txt                    # Python dependencies
+├── install_sitepanda.sh               # One-click installer (Linux/macOS)
+├── install_sitepanda.bat              # One-click installer (Windows)
+├── create_desktop_shortcut_linux.sh   # Desktop shortcut creator (Linux)
+├── create_desktop_shortcut_macos.sh   # Desktop shortcut creator (macOS)
+├── create_desktop_shortcut_windows.bat # Desktop shortcut creator (Windows)
+├── test_installation.py               # Installation verification
+├── README.md                          # This file
+├── QUICK_START.md                     # Quick start guide
+├── USER_GUIDE.md                      # User manual
+├── PROJECT_SUMMARY.md                 # Technical overview
+└── modules/                           # Application modules
+    ├── config_manager.py              # Encrypted credential storage
+    ├── database.py                    # SQLite database operations
+    ├── duda_client.py                 # Duda REST API client
+    ├── s3_client.py                   # AWS S3 client
+    ├── data_fetcher.py                # Data fetching orchestration
+    ├── webhook_manager.py             # Webhook notification system
+    ├── main_window.py                 # Main GUI window
+    └── settings_dialog.py             # Settings configuration UI
+```
 
 ## Troubleshooting
 
-### "Not Configured" Error
+### Application Won't Start
 
-If you see this error when trying to fetch data:
-1. Go to **Settings**
-2. Verify your Duda API credentials are entered correctly
-3. Click **Save Settings**
-4. Try fetching data again
-
-### Connection Errors
-
-If the application can't connect to Duda:
-1. Check your internet connection
-2. Verify your API credentials are correct
-3. Ensure your Duda account has API access enabled
-4. Check if your IP is whitelisted (if required by your Duda plan)
-
-### S3 Access Errors
-
-If S3 integration isn't working:
-1. Verify your AWS credentials are correct
-2. Check the bucket name matches exactly
-3. Ensure the IAM user has read permissions for the bucket
-4. Verify the region is correct
-
-### Webhook Failures
-
-If webhooks aren't being delivered:
-1. Check the webhook URL is correct and accessible
-2. Verify the endpoint accepts POST requests with JSON
-3. Check the webhook log in the database for error details
-4. Test the webhook URL manually with a tool like Postman
-
-## Advanced Features
-
-### Auto-Fetch
-
-Configure automatic data fetching in **Settings → App Settings**:
-- Set the **Auto-Fetch Interval** (in seconds)
-- The application will automatically fetch new data at this interval
-- Minimum interval: 60 seconds (1 minute)
-- Default: 300 seconds (5 minutes)
-
-### Database Access
-
-You can access the SQLite database directly for custom queries:
-
+**Error: "No module named 'PyQt6'"**
 ```bash
-sqlite3 ~/.duda-manager/duda_data.db
+pip3 install -r requirements.txt
 ```
 
-Example queries:
+**Error: "Python version too old"**
+- Upgrade to Python 3.11+
+- Check version: `python3 --version`
 
-```sql
--- View all sites
-SELECT * FROM sites;
+### Can't Connect to Duda
 
--- View recent form submissions
-SELECT * FROM form_submissions ORDER BY submission_date DESC LIMIT 10;
+**Error: "Not Configured"**
+1. Go to Settings
+2. Enter your Duda API credentials
+3. Save settings
 
--- View orders by total amount
-SELECT * FROM ecommerce_orders ORDER BY total_amount DESC;
+**Error: "Connection failed"**
+- Verify credentials in Duda dashboard
+- Check internet connection
+- Contact Duda support to verify API access
 
--- View webhook log
-SELECT * FROM webhook_log ORDER BY timestamp DESC LIMIT 20;
+### Webhooks Not Working
+
+1. Test webhook URL with [webhook.site](https://webhook.site)
+2. Verify endpoint accepts POST requests with JSON
+3. Check webhook log in database for errors:
+```bash
+sqlite3 ~/.sitepanda-desktop/sitepanda_data.db
+SELECT * FROM webhook_log ORDER BY timestamp DESC LIMIT 10;
 ```
 
-## Architecture
+## Contributing
 
-The application is built with a modular architecture:
-
-- **app.py**: Main application controller
-- **modules/config_manager.py**: Encrypted configuration storage
-- **modules/database.py**: SQLite database operations
-- **modules/duda_client.py**: Duda REST API client
-- **modules/s3_client.py**: AWS S3 client
-- **modules/data_fetcher.py**: Data fetching orchestration
-- **modules/webhook_manager.py**: Webhook notification system
-- **modules/main_window.py**: Main GUI window
-- **modules/settings_dialog.py**: Settings configuration dialog
-
-## API Reference
-
-### Duda API Endpoints Used
-
-- `GET /api/sites/multiscreen` - List all sites
-- `GET /api/sites/multiscreen/{site_name}` - Get site details
-- `GET /api/sites/multiscreen/analytics/{site_name}` - Get analytics
-- `GET /api/sites/multiscreen/{site_name}/forms` - Get form submissions
-- `GET /api/sites/multiscreen/{site_name}/ecommerce/products` - List products
-- `GET /api/sites/multiscreen/{site_name}/ecommerce/orders` - List orders
-- `GET /api/sites/multiscreen/{site_name}/blog/posts` - List blog posts
-- `GET /api/sites/multiscreen/{site_name}/collection` - List collections
-
-For full API documentation, visit: https://developer.duda.co/reference
-
-## License
-
-This application is provided as-is for managing Duda sites. Use at your own discretion.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Support
 
 For issues related to:
-- **Duda API**: Contact Duda support or visit https://help.duda.co
-- **This Application**: Check the troubleshooting section above
+- **Duda API**: Contact Duda support at https://help.duda.co
+- **This Application**: Open an issue on GitHub
+- **Feature Requests**: Open an issue on GitHub
+
+## License
+
+This project is provided as-is for managing Duda sites. Use at your own discretion.
 
 ## Version History
 
@@ -281,3 +268,19 @@ For issues related to:
 - Desktop GUI with PyQt6
 - Encrypted credential storage
 - SQLite database storage
+- Cross-platform desktop shortcuts
+- One-click installers
+
+## Credits
+
+Built with:
+- [Python](https://www.python.org/)
+- [PyQt6](https://www.riverbankcomputing.com/software/pyqt/)
+- [Duda REST API](https://developer.duda.co/)
+- [AWS SDK for Python (Boto3)](https://boto3.amazonaws.com/)
+
+---
+
+**GitHub Repository**: https://github.com/steadycalls/sitepanda-desktop
+
+**Made with ❤️ for SitePanda users**
