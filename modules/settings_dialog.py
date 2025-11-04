@@ -44,6 +44,10 @@ class SettingsDialog(QDialog):
         webhooks_tab = self._create_webhooks_tab()
         tabs.addTab(webhooks_tab, "Webhooks")
         
+        # SEO Tools tab
+        seo_tab = self._create_seo_tab()
+        tabs.addTab(seo_tab, "SEO Tools")
+        
         # App Settings tab
         app_tab = self._create_app_settings_tab()
         tabs.addTab(app_tab, "App Settings")
@@ -194,6 +198,80 @@ class SettingsDialog(QDialog):
         widget.setLayout(layout)
         return widget
     
+    def _create_seo_tab(self) -> QWidget:
+        """Create SEO tools configuration tab."""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        # DataForSEO credentials group
+        dfs_group = QGroupBox("DataForSEO API Credentials")
+        dfs_layout = QFormLayout()
+        
+        self.dfs_login_input = QLineEdit()
+        self.dfs_login_input.setPlaceholderText("Enter your DataForSEO login/email")
+        dfs_layout.addRow("Login/Email:", self.dfs_login_input)
+        
+        self.dfs_password_input = QLineEdit()
+        self.dfs_password_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self.dfs_password_input.setPlaceholderText("Enter your DataForSEO password")
+        dfs_layout.addRow("Password:", self.dfs_password_input)
+        
+        dfs_group.setLayout(dfs_layout)
+        layout.addWidget(dfs_group)
+        
+        # Google Analytics 4 group (optional)
+        ga4_group = QGroupBox("Google Analytics 4 (Optional)")
+        ga4_layout = QFormLayout()
+        
+        self.ga4_service_account_input = QLineEdit()
+        self.ga4_service_account_input.setPlaceholderText("/path/to/service-account.json")
+        ga4_layout.addRow("Service Account File:", self.ga4_service_account_input)
+        
+        ga4_group.setLayout(ga4_layout)
+        layout.addWidget(ga4_group)
+        
+        # Google Search Console group (optional)
+        gsc_group = QGroupBox("Google Search Console (Optional)")
+        gsc_layout = QFormLayout()
+        
+        self.gsc_service_account_input = QLineEdit()
+        self.gsc_service_account_input.setPlaceholderText("/path/to/service-account.json (can be same as GA4)")
+        gsc_layout.addRow("Service Account File:", self.gsc_service_account_input)
+        
+        gsc_group.setLayout(gsc_layout)
+        layout.addWidget(gsc_group)
+        
+        # SEO Audit webhook
+        webhook_group = QGroupBox("SEO Audit Webhooks")
+        webhook_layout = QFormLayout()
+        
+        self.webhook_audit_complete_input = QLineEdit()
+        self.webhook_audit_complete_input.setPlaceholderText("https://your-webhook-url.com/audit-complete")
+        webhook_layout.addRow("Audit Complete:", self.webhook_audit_complete_input)
+        
+        webhook_group.setLayout(webhook_layout)
+        layout.addWidget(webhook_group)
+        
+        # Info label
+        info_label = QLabel(
+            "<b>SEO Tools Configuration:</b><br><br>"
+            "<b>DataForSEO:</b> Required for crawls, keywords, backlinks, and competitor analysis.<br>"
+            "Sign up at <a href='https://dataforseo.com'>dataforseo.com</a><br><br>"
+            "<b>Google Analytics 4:</b> Optional. Provides traffic and engagement metrics.<br>"
+            "Requires a service account JSON file with Analytics Data API enabled.<br><br>"
+            "<b>Google Search Console:</b> Optional. Provides search query and position data.<br>"
+            "Requires a service account JSON file with Search Console API enabled.<br><br>"
+            "<i>Note: GA4 and GSC can use the same service account file.</i>"
+        )
+        info_label.setWordWrap(True)
+        info_label.setOpenExternalLinks(True)
+        info_label.setStyleSheet("padding: 10px; background-color: #f0f0f0; border-radius: 5px;")
+        layout.addWidget(info_label)
+        
+        layout.addStretch()
+        widget.setLayout(layout)
+        return widget
+    
     def _create_app_settings_tab(self) -> QWidget:
         """Create application settings tab."""
         widget = QWidget()
@@ -255,6 +333,14 @@ class SettingsDialog(QDialog):
         self.webhook_stats_input.setText(webhooks.get('daily_stats_summary', ''))
         self.webhook_blog_input.setText(webhooks.get('new_blog_post', ''))
         
+        # SEO tools
+        seo = config.get('seo', {})
+        self.dfs_login_input.setText(seo.get('dataforseo_login', ''))
+        self.dfs_password_input.setText(seo.get('dataforseo_password', ''))
+        self.ga4_service_account_input.setText(seo.get('ga4_service_account', ''))
+        self.gsc_service_account_input.setText(seo.get('gsc_service_account', ''))
+        self.webhook_audit_complete_input.setText(seo.get('webhook_audit_complete', ''))
+        
         # App settings
         app_settings = config.get('app_settings', {})
         self.auto_fetch_interval.setValue(app_settings.get('auto_fetch_interval', 300))
@@ -278,6 +364,13 @@ class SettingsDialog(QDialog):
                 'new_ecommerce_order': self.webhook_order_input.text().strip(),
                 'daily_stats_summary': self.webhook_stats_input.text().strip(),
                 'new_blog_post': self.webhook_blog_input.text().strip()
+            },
+            'seo': {
+                'dataforseo_login': self.dfs_login_input.text().strip(),
+                'dataforseo_password': self.dfs_password_input.text().strip(),
+                'ga4_service_account': self.ga4_service_account_input.text().strip(),
+                'gsc_service_account': self.gsc_service_account_input.text().strip(),
+                'webhook_audit_complete': self.webhook_audit_complete_input.text().strip()
             },
             'app_settings': {
                 'auto_fetch_interval': self.auto_fetch_interval.value(),

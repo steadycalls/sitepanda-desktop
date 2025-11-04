@@ -65,6 +65,10 @@ class MainWindow(QMainWindow):
         self.analytics_tab = self._create_analytics_tab()
         self.tabs.addTab(self.analytics_tab, "Analytics")
         
+        # SEO Audits tab
+        self.seo_audits_tab = self._create_seo_audits_tab()
+        self.tabs.addTab(self.seo_audits_tab, "SEO Audits")
+        
         layout.addWidget(self.tabs)
         
         central_widget.setLayout(layout)
@@ -192,6 +196,137 @@ class MainWindow(QMainWindow):
         
         widget.setLayout(layout)
         return widget
+    
+    def _create_seo_audits_tab(self) -> QWidget:
+        """Create SEO audits tab."""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        # Header with Run Audit button
+        header = QWidget()
+        header_layout = QHBoxLayout()
+        
+        header_label = QLabel("<h3>SEO Audits</h3>")
+        header_layout.addWidget(header_label)
+        header_layout.addStretch()
+        
+        self.run_audit_btn = QPushButton("Run New Audit")
+        self.run_audit_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                padding: 8px 16px;
+                border: none;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #2980b9;
+            }
+        """)
+        header_layout.addWidget(self.run_audit_btn)
+        
+        header.setLayout(header_layout)
+        layout.addWidget(header)
+        
+        # Audits table
+        self.audits_table = QTableWidget()
+        self.audits_table.setColumnCount(6)
+        self.audits_table.setHorizontalHeaderLabels([
+            "Domain", "Status", "Started", "Completed", "Duration", "Actions"
+        ])
+        self.audits_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.audits_table.setAlternatingRowColors(True)
+        self.audits_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.audits_table.doubleClicked.connect(self._on_audit_double_click)
+        
+        layout.addWidget(self.audits_table)
+        
+        widget.setLayout(layout)
+        return widget
+    
+    def _on_audit_double_click(self, index):
+        """Handle double-click on audit row."""
+        row = index.row()
+        item = self.audits_table.item(row, 0)
+        if item:
+            audit_data = item.data(Qt.ItemDataRole.UserRole)
+            if audit_data:
+                self._show_audit_details(audit_data)
+    
+    def _show_audit_details(self, audit_data: dict):
+        """Show audit details dialog."""
+        domain = audit_data.get('domain', 'Unknown')
+        status = audit_data.get('status', 'unknown')
+        
+        insights_str = audit_data.get('insights', '{}')
+        try:
+            insights = json.loads(insights_str) if isinstance(insights_str, str) else insights_str
+        except:
+            insights = {}
+        
+        summary = insights.get('summary', {})
+        
+        # Build details message
+        details = f"<h2>SEO Audit: {domain}</h2>"
+        details += f"<p><b>Status:</b> {status}</p>"
+        details += f"<p><b>Started:</b> {audit_data.get('started_at', 'N/A')}</p>"
+        details += f"<p><b>Completed:</b> {audit_data.get('completed_at', 'N/A')}</p>"
+        
+        if summary:
+            details += "<h3>Summary:</h3><ul>"
+            for key, value in summary.items():
+                details += f"<li><b>{key}:</b> {value}</li>"
+            details += "</ul>"
+        
+        msg = QMessageBox(self)
+        msg.setWindowTitle(f"Audit Details - {domain}")
+        msg.setText(details)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.exec()
+    
+    def update_audits_table(self, audits: list):
+        """Update SEO audits table with data."""
+        self.audits_table.setRowCount(len(audits))
+        
+        for row, audit in enumerate(audits):
+            # Domain
+            domain_item = QTableWidgetItem(audit.get('domain', ''))
+            domain_item.setData(Qt.ItemDataRole.UserRole, audit)
+            self.audits_table.setItem(row, 0, domain_item)
+            
+            # Status
+            status = audit.get('status', 'unknown')
+            status_item = QTableWidgetItem(status.upper())
+            if status == 'completed':
+                status_item.setForeground(Qt.GlobalColor.darkGreen)
+            elif status == 'failed':
+                status_item.setForeground(Qt.GlobalColor.red)
+            elif status == 'running':
+                status_item.setForeground(Qt.GlobalColor.blue)
+            self.audits_table.setItem(row, 1, status_item)
+            
+            # Started
+            self.audits_table.setItem(row, 2, QTableWidgetItem(audit.get('started_at', '')))
+            
+            # Completed
+            self.audits_table.setItem(row, 3, QTableWidgetItem(audit.get('completed_at', '') or 'In Progress'))
+            
+            # Duration (calculate if completed)
+            duration = ""
+            if audit.get('started_at') and audit.get('completed_at'):
+                try:
+                    from datetime import datetime
+                    start = datetime.fromisoformat(audit['started_at'])
+                    end = datetime.fromisoformat(audit['completed_at'])
+                    delta = end - start
+                    duration = str(delta).split('.')[0]  # Remove microseconds
+                except:
+                    pass
+            self.audits_table.setItem(row, 4, QTableWidgetItem(duration))
+            
+            # Actions (placeholder for now)
+            self.audits_table.setItem(row, 5, QTableWidgetItem("View Report"))
     
     def _init_menu(self):
         """Initialize menu bar."""

@@ -15,6 +15,14 @@ A desktop application for managing Duda websites, fetching site data, and sendin
 - Integrates with S3 to pull site statistics from Duda-provided buckets
 - Stores all data locally in an encrypted SQLite database for fast access and offline viewing
 
+### SEO Audit Tools
+- Comprehensive SEO audits powered by DataForSEO API
+- On-page crawls, keyword rankings, backlink analysis, and competitor research
+- Optional Google Analytics 4 (GA4) integration for traffic metrics
+- Optional Google Search Console (GSC) integration for search performance data
+- Automated HTML and PDF report generation
+- Webhook notifications when audits complete
+
 ### User Interface
 - Clean, tabbed desktop interface built with PyQt6
 - Separate views for Sites, Form Submissions, eCommerce Orders, Products, and Analytics
@@ -162,6 +170,7 @@ Webhooks send JSON payloads via POST requests. Test with services like:
 
 - **[QUICK_START.md](QUICK_START.md)** - 5-minute setup guide
 - **[USER_GUIDE.md](USER_GUIDE.md)** - Comprehensive user manual
+- **[SEO_AUDIT_GUIDE.md](SEO_AUDIT_GUIDE.md)** - SEO audit feature guide
 - **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Technical overview
 
 ## System Requirements
@@ -259,6 +268,14 @@ For issues related to:
 This project is provided as-is for managing Duda sites. Use at your own discretion.
 
 ## Version History
+
+### Version 1.1 (2025-11-03)
+- Added comprehensive SEO audit functionality
+- DataForSEO API integration for crawls, keywords, backlinks, competitors
+- Optional GA4 integration for traffic analytics
+- Optional GSC integration for search performance
+- Automated HTML and PDF report generation
+- SEO audit webhook notifications
 
 ### Version 1.0 (2025-10-30)
 - Initial release
