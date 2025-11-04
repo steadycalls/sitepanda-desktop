@@ -25,9 +25,10 @@ A desktop application for managing Duda websites, fetching site data, and sendin
 
 ### User Interface
 - Clean, tabbed desktop interface built with PyQt6
-- Separate views for Sites, Form Submissions, eCommerce Orders, Products, and Analytics
+- Separate views for Sites, Form Submissions, eCommerce Orders, Products, Analytics, SEO Audits, and Logs
 - Double-click any row to view detailed information
 - Real-time progress indicators and status updates
+- Built-in log viewer for monitoring operations and troubleshooting
 
 ### Webhook System
 - Automatically sends data to configured webhook URLs when events occur
@@ -268,6 +269,14 @@ For issues related to:
 This project is provided as-is for managing Duda sites. Use at your own discretion.
 
 ## Version History
+
+### Version 1.2 (2025-11-04)
+- Added comprehensive logging system
+- Log viewer tab in GUI with refresh, clear, and open folder functions
+- Rotating log files (main log and error log)
+- Logs stored in ~/.sitepanda-desktop/logs/
+- Complete Windows installer (batch and PowerShell versions)
+- Automatic desktop and Start Menu shortcut creation
 
 ### Version 1.1 (2025-11-03)
 - Added comprehensive SEO audit functionality

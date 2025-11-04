@@ -15,6 +15,7 @@ from modules.data_fetcher import DataFetcher
 from modules.webhook_manager import WebhookManager
 from modules.main_window import MainWindow
 from modules.settings_dialog import SettingsDialog
+from modules import logger
 
 
 class DataFetchThread(QThread):
@@ -60,9 +61,12 @@ class SitePandaApp:
     
     def __init__(self):
         """Initialize the application."""
+        logger.info("Initializing SitePanda Desktop application")
+        
         # Initialize components
         self.config_manager = ConfigManager()
         self.db_manager = DatabaseManager()
+        logger.info("Core components initialized")
         
         # Initialize clients (will be None if not configured)
         self.duda_client = None
@@ -85,16 +89,21 @@ class SitePandaApp:
     
     def _initialize_clients(self):
         """Initialize API clients with saved credentials."""
+        logger.info("Initializing API clients")
+        
         # Duda API client
         if self.config_manager.validate_duda_credentials():
             user, password = self.config_manager.get_duda_credentials()
             self.duda_client = DudaAPIClient(user, password)
+            logger.info("Duda API client created")
             
             # Test connection
             if self.duda_client.test_connection():
                 self.window.set_status("Connected to Duda API")
+                logger.info("Duda API connection successful")
             else:
                 self.window.set_status("Duda API credentials invalid")
+                logger.error("Duda API connection failed - invalid credentials")
                 self.duda_client = None
         
         # S3 client
@@ -135,7 +144,10 @@ class SitePandaApp:
     
     def fetch_data(self):
         """Fetch data from Duda API."""
+        logger.log_operation("Fetch Data", "STARTED")
+        
         if not self.duda_client:
+            logger.warning("Fetch data requested but Duda client not configured")
             QMessageBox.warning(
                 self.window,
                 "Not Configured",
@@ -147,6 +159,7 @@ class SitePandaApp:
         # Show progress
         self.window.set_status("Fetching data from Duda...")
         self.window.show_progress(True)
+        logger.info("Starting data fetch from Duda API")
         self.window.fetch_btn.setEnabled(False)
         
         # Create and start fetch thread
@@ -157,6 +170,10 @@ class SitePandaApp:
     
     def _on_fetch_finished(self, stats):
         """Handle data fetch completion."""
+        logger.log_operation("Fetch Data", "SUCCESS", 
+                           f"Sites: {stats.get('sites', 0)}, Forms: {stats.get('form_submissions', 0)}, "
+                           f"Products: {stats.get('products', 0)}, Orders: {stats.get('orders', 0)}")
+        
         self.window.show_progress(False)
         self.window.fetch_btn.setEnabled(True)
         
@@ -184,6 +201,9 @@ class SitePandaApp:
     
     def _on_fetch_error(self, error_msg):
         """Handle data fetch error."""
+        logger.log_operation("Fetch Data", "FAILED", error_msg)
+        logger.error(f"Data fetch error: {error_msg}")
+        
         self.window.show_progress(False)
         self.window.fetch_btn.setEnabled(True)
         self.window.set_status("Error fetching data")

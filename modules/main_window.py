@@ -6,7 +6,7 @@ Main application window with tabbed interface for displaying data.
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget,
     QPushButton, QLabel, QTableWidget, QTableWidgetItem, QHeaderView,
-    QMessageBox, QStatusBar, QMenuBar, QMenu, QProgressBar
+    QMessageBox, QStatusBar, QMenuBar, QMenu, QProgressBar, QTextEdit
 )
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QAction
@@ -68,6 +68,10 @@ class MainWindow(QMainWindow):
         # SEO Audits tab
         self.seo_audits_tab = self._create_seo_audits_tab()
         self.tabs.addTab(self.seo_audits_tab, "SEO Audits")
+        
+        # Logs tab
+        self.logs_tab = self._create_logs_tab()
+        self.tabs.addTab(self.logs_tab, "Logs")
         
         layout.addWidget(self.tabs)
         
@@ -327,6 +331,117 @@ class MainWindow(QMainWindow):
             
             # Actions (placeholder for now)
             self.audits_table.setItem(row, 5, QTableWidgetItem("View Report"))
+    
+    def _create_logs_tab(self) -> QWidget:
+        """Create logs viewer tab."""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        # Header with controls
+        header = QWidget()
+        header_layout = QHBoxLayout()
+        
+        header_label = QLabel("<h3>Application Logs</h3>")
+        header_layout.addWidget(header_label)
+        header_layout.addStretch()
+        
+        # Refresh button
+        refresh_btn = QPushButton("Refresh Logs")
+        refresh_btn.clicked.connect(self._refresh_logs)
+        header_layout.addWidget(refresh_btn)
+        
+        # Clear button
+        clear_btn = QPushButton("Clear Logs")
+        clear_btn.clicked.connect(self._clear_logs)
+        clear_btn.setStyleSheet("background-color: #e74c3c; color: white;")
+        header_layout.addWidget(clear_btn)
+        
+        # Open log folder button
+        open_folder_btn = QPushButton("Open Log Folder")
+        open_folder_btn.clicked.connect(self._open_log_folder)
+        header_layout.addWidget(open_folder_btn)
+        
+        header.setLayout(header_layout)
+        layout.addWidget(header)
+        
+        # Log viewer (text edit with monospace font)
+        self.log_viewer = QTextEdit()
+        self.log_viewer.setReadOnly(True)
+        self.log_viewer.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
+        self.log_viewer.setStyleSheet("""
+            QTextEdit {
+                font-family: 'Courier New', Consolas, monospace;
+                font-size: 10pt;
+                background-color: #1e1e1e;
+                color: #d4d4d4;
+            }
+        """)
+        layout.addWidget(self.log_viewer)
+        
+        # Info label
+        info_label = QLabel(
+            "<b>Log Files Location:</b> ~/.sitepanda-desktop/logs/<br>"
+            "<b>Main Log:</b> sitepanda.log (all messages)<br>"
+            "<b>Error Log:</b> sitepanda_errors.log (errors only)"
+        )
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("padding: 5px; background-color: #f0f0f0; border-radius: 3px;")
+        layout.addWidget(info_label)
+        
+        widget.setLayout(layout)
+        return widget
+    
+    def _refresh_logs(self):
+        """Refresh log viewer with latest logs."""
+        try:
+            from modules.logger import logger
+            recent_logs = logger.get_recent_logs(200)
+            self.log_viewer.setPlainText(''.join(recent_logs))
+            # Scroll to bottom
+            self.log_viewer.verticalScrollBar().setValue(
+                self.log_viewer.verticalScrollBar().maximum()
+            )
+        except Exception as e:
+            self.log_viewer.setPlainText(f"Error loading logs: {e}")
+    
+    def _clear_logs(self):
+        """Clear all log files."""
+        reply = QMessageBox.question(
+            self,
+            "Clear Logs",
+            "Are you sure you want to clear all log files?\n\nThis action cannot be undone.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                from modules.logger import logger
+                if logger.clear_logs():
+                    self.log_viewer.setPlainText("Logs cleared successfully.")
+                    QMessageBox.information(self, "Success", "Log files have been cleared.")
+                else:
+                    QMessageBox.warning(self, "Error", "Failed to clear log files.")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Error clearing logs: {e}")
+    
+    def _open_log_folder(self):
+        """Open log folder in file explorer."""
+        import os
+        import platform
+        from pathlib import Path
+        
+        log_dir = Path.home() / ".sitepanda-desktop" / "logs"
+        
+        try:
+            if platform.system() == "Windows":
+                os.startfile(log_dir)
+            elif platform.system() == "Darwin":  # macOS
+                os.system(f'open "{log_dir}"')
+            else:  # Linux
+                os.system(f'xdg-open "{log_dir}"')
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Could not open log folder: {e}")
     
     def _init_menu(self):
         """Initialize menu bar."""
