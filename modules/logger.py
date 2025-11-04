@@ -30,8 +30,8 @@ class AppLogger:
     
     def _setup_logger(self):
         """Set up logging configuration."""
-        # Create logs directory
-        log_dir = Path.home() / ".sitepanda-desktop" / "logs"
+        # Create logs directory on D: drive (avoids Windows user profile permission issues)
+        log_dir = Path(r'D:\sitepanda-data\logs')
         log_dir.mkdir(parents=True, exist_ok=True)
         
         # Log file paths

@@ -21,7 +21,8 @@ class ConfigManager:
             config_dir: Directory to store configuration files. Defaults to user's home directory.
         """
         if config_dir is None:
-            config_dir = os.path.join(str(Path.home()), '.sitepanda-desktop')
+            # Use D: drive for data storage (avoids Windows user profile permission issues)
+            config_dir = r'D:\sitepanda-data'
         
         self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)

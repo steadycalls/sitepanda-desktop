@@ -21,7 +21,8 @@ class DatabaseManager:
             db_path: Path to SQLite database file
         """
         if db_path is None:
-            db_path = str(Path(__file__).parent.parent / 'data' / 'duda_data.db')
+            # FIXED: Use D: drive instead of relative path
+            db_path = r'D:\sitepanda-data\sitepanda_data.db'
         
         self.db_path = db_path
         self.conn = None
